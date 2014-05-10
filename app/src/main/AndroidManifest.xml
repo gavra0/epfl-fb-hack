@@ -19,6 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".DisplayCardActivity"/>
 
         <service
             android:name="com.hackers.epfl.services.AppTriggerService"
@@ -41,7 +42,7 @@
         <service
             android:name="com.hackers.epfl.services.LiveCardService"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="false" >
         </service>
     </application>
 

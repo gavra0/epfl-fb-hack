@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.google.android.glass.timeline.LiveCard;
@@ -16,6 +17,7 @@ import com.hackers.epfl.MainActivity;
 import com.hackers.epfl.R;
 
 public class LiveCardService extends Service {
+    private static final String TAG = LiveCardService.class.getCanonicalName();
 
 	private static final String LIVE_CARD_TAG = "LiveCardDemo";
 
@@ -28,6 +30,7 @@ public class LiveCardService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (mLiveCard == null) {
+            Log.d(TAG, "On start service");
 
 			// Get an instance of a live card
 			mLiveCard = new LiveCard(this, LIVE_CARD_TAG);

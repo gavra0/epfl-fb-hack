@@ -1,12 +1,7 @@
 package com.hackers.epfl;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
+import java.util.Collections;
 
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,7 +13,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 
 /**
  * @author Filip Hrisafov
