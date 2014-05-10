@@ -33,14 +33,9 @@ public class EBService extends Service implements SensorEventListener{
     private BeaconManager beaconManager;
 
     private Region regionZero;
-    private Beacon beaconX;
-    private Beacon beaconY;
-    private Beacon beaconZ;
-
-    private enum BeaconState {INSIDE, OUTSIDE};
-    private BeaconState beaconXState;
-    private BeaconState beaconYState;
-    private BeaconState beaconZState;
+    private Beacon beaconX; // gray
+    private Beacon beaconY; // purple
+    private Beacon beaconZ; // blue
 
     //private LiveCard liveCard;
 
@@ -83,10 +78,6 @@ public class EBService extends Service implements SensorEventListener{
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
-        beaconXState = BeaconState.OUTSIDE;
-        beaconYState = BeaconState.OUTSIDE;
-        beaconZState = BeaconState.OUTSIDE;
 
         regionZero = new Region("epfl", ESTIMOTE_PROXIMITY_UUID, null, null);
         beaconManager = new BeaconManager(getApplicationContext());
