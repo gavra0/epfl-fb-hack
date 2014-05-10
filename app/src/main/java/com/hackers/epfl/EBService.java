@@ -3,14 +3,11 @@ package com.hackers.epfl;
 /**
  * Created by tz on 10/05/2014.
  */
-import java.util.ArrayList;
 import java.util.List;
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
-//import com.google.android.glass.timeline.LiveCard;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -21,9 +18,7 @@ import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.speech.RecognizerIntent;
 import android.util.Log;
-import android.widget.RemoteViews;
 
 public class EBService extends Service implements SensorEventListener{
     private Handler handler;
@@ -32,7 +27,7 @@ public class EBService extends Service implements SensorEventListener{
 
     private BeaconManager beaconManager;
 
-    private Region regionZero;
+    private Region groundZero;
     private Beacon beaconX; // gray
     private Beacon beaconY; // purple
     private Beacon beaconZ; // blue
@@ -79,13 +74,12 @@ public class EBService extends Service implements SensorEventListener{
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
-        regionZero = new Region("epfl", ESTIMOTE_PROXIMITY_UUID, null, null);
+        groundZero = new Region("epfl", ESTIMOTE_PROXIMITY_UUID, null, null);
         beaconManager = new BeaconManager(getApplicationContext());
 
-        // Default values are 5s of scanning and 25s of waiting time to save CPU cycles.
-        // In order for this demo to be more responsive and immediate we lower down those values.
-        //beaconManager.setBackgroundScanPeriod(TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(25));
-        //beaconManager.setForegroundScanPeriod(TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(10));
+        // runs the ranging scan every 5 seconds
+        beaconManager.setForegroundScanPeriod(1000, 4000);
+
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
             public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
@@ -96,13 +90,19 @@ public class EBService extends Service implements SensorEventListener{
                         Beacon nearest = getNearestBeacon(beacons);
                         if(nearest == null) {
                             showNotification("All beacons out of range");
-                        } else if(nearest.getMinor() == 0) {
-                            showNotification("X");
-                        } else if(nearest.getMinor() == 1) {
-                            showNotification("Y");
-                        } else if(nearest.getMinor() == 2) {
-                            showNotification("Z");
+                        } else {
+                            // TODO: call task
+                            showNotification(getBeaconID(nearest));
                         }
+                        /*if(nearest.getMinor() == 0) {
+                                showNotification("X");
+                            } else if(nearest.getMinor() == 1) {
+                                showNotification("Y");
+                            } else if(nearest.getMinor() == 2) {
+                                showNotification("Z");
+                                showNotification(nearest.toString());
+                            }
+                        }*/
                     }
                 });
             }
@@ -118,7 +118,7 @@ public class EBService extends Service implements SensorEventListener{
             public void onServiceReady() {
                 try {
                     //beaconManager.startMonitoring(houseRegion);
-                    beaconManager.startRanging(regionZero);
+                    beaconManager.startRanging(groundZero);
                 } catch (RemoteException e) {
                     Log.d(TAG, "Error while starting Ranging");
                 }
@@ -132,7 +132,7 @@ public class EBService extends Service implements SensorEventListener{
     private void stopScanning(){
         try {
             //beaconManager.stopMonitoring(houseRegion);
-            beaconManager.stopRanging(regionZero);
+            beaconManager.stopRanging(groundZero);
         } catch (RemoteException e) {
             Log.e(TAG, "Cannot stop but it does not matter now", e);
         }
@@ -140,15 +140,7 @@ public class EBService extends Service implements SensorEventListener{
 
     private void showNotification(String msg) {
         // TODO
-        Log.w(TAG, msg);
-        /*
-        RemoteViews views = new RemoteViews(getPackageName(), R.layout.livecard_beacon);
-        views.setTextViewText(R.id.livecard_content,msg);
-        liveCard = new LiveCard(getApplication(),"beacon");
-        liveCard.setViews(views);
-        Intent intent = new Intent(getApplication(), EBService.class);
-        liveCard.setAction(PendingIntent.getActivity(getApplication(), 0, intent, 0));
-        liveCard.publish(LiveCard.PublishMode.REVEAL);*/
+        Log.i(TAG, msg);
     }
 
 
@@ -210,6 +202,10 @@ public class EBService extends Service implements SensorEventListener{
             }
         }
         return nearest;
+    }
+
+    private String getBeaconID(Beacon beacon) {
+        return beacon.getProximityUUID() + "_" + beacon.getMajor() + "_" + beacon.getMinor();
     }
 
 }
