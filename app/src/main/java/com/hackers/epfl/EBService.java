@@ -140,7 +140,7 @@ public class EBService extends Service implements SensorEventListener {
 
     private void saveNearest(String beaconID) {
         Log.i(TAG, beaconID);
-        SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(Constants.COMMON_PREF, MODE_PRIVATE).edit();
         editor.putString(Constants.SHARED_PREF_BEACON, beaconID);
         editor.commit();
     }
