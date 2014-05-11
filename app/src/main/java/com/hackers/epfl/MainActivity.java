@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
         this.startService(new Intent(this, EBService.class));
 
 		// init count to 0s
-		SharedPreferences sharedPrefs = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences sharedPrefs = this.getSharedPreferences(getString(R.string.shared_data), Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		if (!sharedPrefs.contains(MSG_COUNT_LOC + "0")) {
 			for (int i = 0; i < 3; i++)

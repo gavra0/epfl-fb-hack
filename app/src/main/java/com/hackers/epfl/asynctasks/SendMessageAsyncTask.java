@@ -39,7 +39,7 @@ public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Void... params) {
-
+        Log.d(TAG, "Sending msg");
 		BeaconAPIMessage.BeaconRequestResponse result = null;
 
 		final String url = context.getResources().getString(R.string.gnote_url);

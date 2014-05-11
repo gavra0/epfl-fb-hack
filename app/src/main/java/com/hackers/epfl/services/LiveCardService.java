@@ -53,8 +53,7 @@ public class LiveCardService extends Service {
 
 			// TODO put the location id in the intent
 			int locationId = 1;
-			Context ctx = getApplicationContext();
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+			SharedPreferences prefs = this.getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE);
 			int nCount = prefs.getInt(MainActivity.MSG_COUNT_LOC + locationId, 0);
 
 			// Set up initial RemoteViews values

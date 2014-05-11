@@ -39,6 +39,7 @@ public class EBService extends Service implements SensorEventListener {
 	private String currentStatus;
 
 	private static final String TAG = "EBService";
+    public static final String NEAREST = "nearest";
 
 	private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
 
@@ -49,6 +50,8 @@ public class EBService extends Service implements SensorEventListener {
 	private static final int beaconYMinor = 1;
 	private static final int beaconZMajor = 28945;
 	private static final int beaconZMinor = 2;
+
+    public static final String DEAFULT_BEACON = ESTIMOTE_PROXIMITY_UUID+"_"+beaconXMajor+"_"+beaconXMinor;
 
 	// maximum range to beacon
 	private static final double minThreshold = 3;
@@ -138,8 +141,8 @@ public class EBService extends Service implements SensorEventListener {
 
     private void saveNearest(String beaconID) {
         Log.i(TAG, beaconID);
-        SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.shared_data), 0).edit();
-        editor.putString("nearest", beaconID);
+        SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE).edit();
+        editor.putString(NEAREST, beaconID);
         editor.commit();
     }
 
