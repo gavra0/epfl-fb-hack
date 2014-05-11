@@ -47,6 +47,9 @@ public class GetInputActivity extends Activity {
 				|| spokenText.toLowerCase().equals("images")) {
 			getImage();
 		}
+        else{
+            displaySpeechRecognizer(SPEECH_REQUEST_NOTE);
+        }
 	}
 
 	private void displaySpeechRecognizer(int code) {

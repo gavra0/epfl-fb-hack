@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 
-import com.hackers.epfl.services.LiveCardService;
-
 import java.util.List;
 
 /**
@@ -39,7 +37,7 @@ public class GetTypeActivity extends Activity{
 
         List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
         if (results == null || results.isEmpty()) {
-            Log.d(TAG, "No text recognized, trying again.");
+            Log.d(TAG, "No text recognized");
         } else {
             String spokenText = results.get(0);
             Log.d(TAG, "Post type " + spokenText);
