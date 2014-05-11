@@ -16,11 +16,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/notice.txt'
+    }
+
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile files('libs/gdk.jar')
-    provided 'org.springframework.android:spring-android-rest-template:1.0.1.RELEASE'
-    compile files('libs/spring-android-rest-template-1.0.1.RELEASE.jar')
+    compile 'org.springframework.android:spring-android-rest-template:1.0.1.RELEASE'
+    compile 'com.google.code.gson:gson:2.2.4'
 }
