@@ -46,10 +46,9 @@ public class GetInputActivity extends Activity {
 		} else if (spokenText.toLowerCase().equals("image")
 				|| spokenText.toLowerCase().equals("images")) {
 			getImage();
+		} else {
+			displaySpeechRecognizer(SPEECH_REQUEST_NOTE);
 		}
-        else{
-            displaySpeechRecognizer(SPEECH_REQUEST_NOTE);
-        }
 	}
 
 	private void displaySpeechRecognizer(int code) {
@@ -70,7 +69,8 @@ public class GetInputActivity extends Activity {
 		// user entered the note to save, send msg and beacon
 		SharedPreferences sharedPrefs =
 				this.getSharedPreferences(Constants.COMMON_PREF, MODE_PRIVATE);
-		final String beacon = sharedPrefs.getString(Constants.SHARED_PREF_BEACON, EBService.DEAFULT_BEACON);
+		final String beacon =
+				sharedPrefs.getString(Constants.SHARED_PREF_BEACON, EBService.DEAFULT_BEACON);
 		if (EBService.DEAFULT_BEACON.equals(beacon)) {
 			finish();
 			return;
@@ -87,13 +87,15 @@ public class GetInputActivity extends Activity {
 
 				if (requestCode == SPEECH_REQUEST_NOTE && resultCode == RESULT_OK) {
 					SendMessageAsyncTask submitNote =
-							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText);
+							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText,
+									false);
 					submitNote.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 					finish();
 				} else if (requestCode == SPEECH_REQUEST_QUESTIONS && resultCode == RESULT_OK) {
 					SendMessageAsyncTask submitNote =
-							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText);
+							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText,
+									true);
 					submitNote.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 					finish();
@@ -152,14 +154,14 @@ public class GetInputActivity extends Activity {
 		 */
 
 		// last check
-		while (new File(path).exists()){
-            // yo
-        }
+		while (new File(path).exists()) {
+			// yo
+		}
 		UploadMediaAsyncTask uploadMediaAsyncTask =
 				new UploadMediaAsyncTask(getApplicationContext(), beacon, path, type);
 		uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 		finish();
 
-		//observer.startWatching();
+		// observer.startWatching();
 	}
 }
