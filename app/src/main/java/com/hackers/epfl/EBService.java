@@ -205,7 +205,7 @@ public class EBService extends Service implements SensorEventListener {
 		 */
 		startScanning();
 
-		return super.onStartCommand(intent, flags, startId);
+		return START_STICKY;
 	}
 
 	@Override

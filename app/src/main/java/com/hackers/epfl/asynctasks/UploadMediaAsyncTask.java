@@ -19,6 +19,7 @@ import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.hackers.epfl.Constants;
 import com.hackers.epfl.R;
 
 /**
@@ -43,7 +44,7 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
         try {
             // populate the data to post
             formData = new LinkedMultiValueMap<String, Object>();
-            formData.add("description", "Spring logo");
+            formData.add(Constants.PARAM_BEACON_ID, beaconID);
             formData.add("file", read(new File(path)));
         }
         catch (Exception e){
@@ -71,10 +72,7 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
 			// Create a new RestTemplate instance
 			RestTemplate restTemplate = new RestTemplate(true);
 
-			// Make the network request, posting the message, expecting a String in response from
-			// the server
-			ResponseEntity<String> response =
-					restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+			restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
 			// Return the response body to display to the user
 			return null;

@@ -29,13 +29,13 @@ public class SendBeaconIDToServerAsyncTask extends
 
 	private final Context context;
 	private final ISendBeaconIDToServerResultHandler handler;
-	private final String json;
+	private String beaconID;
 
 	public SendBeaconIDToServerAsyncTask(Context context, String beaconID,
 			ISendBeaconIDToServerResultHandler handler) {
 		this.context = context;
 		this.handler = handler;
-		this.json = "request={\"" + Constants.PARAM_BEACON_ID + "\":" + beaconID + "}";
+		this.beaconID = beaconID;
 	}
 
 	@Override
@@ -47,11 +47,11 @@ public class SendBeaconIDToServerAsyncTask extends
 
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-		requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		// requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		//requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
-		body.add(Constants.PARAM_REQUEST, json);
+		body.add(Constants.PARAM_BEACON_ID, beaconID);
 
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());

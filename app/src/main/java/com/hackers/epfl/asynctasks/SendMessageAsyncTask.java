@@ -27,14 +27,15 @@ import java.util.Collections;
 public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
 	public static String TAG = SendMessageAsyncTask.class.getCanonicalName();
 
+
 	private final Context context;
-	private final String json;
+    private String beaconID;
+    private String message;
 
 	public SendMessageAsyncTask(Context context, String beaconID, String message) {
 		this.context = context;
-		this.json =
-				"request={\"" + Constants.PARAM_BEACON_ID + "\":" + beaconID + ", \""
-						+ Constants.PARAM_MESSAGE + "\":" + message + "}";
+		this.beaconID = beaconID;
+        this.message = message;
 	}
 
 	@Override
@@ -46,11 +47,12 @@ public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
 
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-		requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		// requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		//requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
-		body.add(Constants.PARAM_REQUEST, json);
+		body.add(Constants.PARAM_BEACON_ID, beaconID);
+		body.add(Constants.PARAM_MESSAGE, message);
 
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());

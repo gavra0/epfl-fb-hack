@@ -1,5 +1,6 @@
 package com.hackers.epfl;
 
+import java.io.File;
 import java.util.List;
 
 import android.app.Activity;
@@ -7,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.FileObserver;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -57,8 +57,9 @@ public class GetInputActivity extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		Log.d(TAG, "Act result: req resp int " + requestCode + " " + resultCode);
-		if (requestCode != SPEECH_REQUEST_NOTE && requestCode != SPEECH_REQUEST_QUESTIONS
-				&& requestCode != CAPTURE_REQUEST_IMAGE) {
+		if (data == null || requestCode != SPEECH_REQUEST_NOTE
+				&& requestCode != SPEECH_REQUEST_QUESTIONS && requestCode != CAPTURE_REQUEST_IMAGE
+				&& requestCode != CAPTURE_REQUEST_VIDEO) {
 			finish();
 			return;
 		}
@@ -98,53 +99,64 @@ public class GetInputActivity extends Activity {
 		}
 		// IMAGE BASED MESSAGES
 		else if (requestCode == CAPTURE_REQUEST_IMAGE) {
-			String path = getIntent().getExtras().getString(CameraManager.EXTRA_PICTURE_FILE_PATH);
-			FileObserver observer = new FileObserver(path) {
-				@Override
-				public void onEvent(int event, String path) {
-					if (event == FileObserver.CREATE) {
-						Log.d(TAG, "The image has been saved");
-						this.stopWatching();
-
-						UploadMediaAsyncTask uploadMediaAsyncTask =
-								new UploadMediaAsyncTask(getApplicationContext(), beacon, path,
-										"vid");
-						uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-						finish();
-					}
-				}
-			};
-			observer.startWatching();
+			String path = data.getExtras().getString(CameraManager.EXTRA_PICTURE_FILE_PATH);
+			File img = new File(path);
+			if (img.exists()) {
+				Log.d(TAG, "Upload directly");
+				UploadMediaAsyncTask uploadMediaAsyncTask =
+						new UploadMediaAsyncTask(getApplicationContext(), beacon, path, "img");
+				uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+				finish();
+			} else {
+				uploadMedia("img", path, beacon);
+			}
 		} else if (requestCode == CAPTURE_REQUEST_VIDEO) {
-			String path = getIntent().getExtras().getString(CameraManager.EXTRA_VIDEO_FILE_PATH);
-			FileObserver observer = new FileObserver(path) {
-				@Override
-				public void onEvent(int event, String path) {
-					if (event == FileObserver.CREATE) {
-						Log.d(TAG, "The video has been saved");
-						this.stopWatching();
-
-						UploadMediaAsyncTask uploadMediaAsyncTask =
-								new UploadMediaAsyncTask(getApplicationContext(), beacon, path,
-										"img");
-						uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-						finish();
-					}
-				}
-			};
-			observer.startWatching();
+			String path = data.getExtras().getString(CameraManager.EXTRA_VIDEO_FILE_PATH);
+			File vid = new File(path);
+			if (vid.exists()) {
+				Log.d(TAG, "Upload directly");
+				UploadMediaAsyncTask uploadMediaAsyncTask =
+						new UploadMediaAsyncTask(getApplicationContext(), beacon, path, "vid");
+				uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+				finish();
+			} else {
+				uploadMedia("vid", path, beacon);
+			}
 		}
 	}
 
-	public void getVideo(){
-        Intent intent = new Intent();
-        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent,CAPTURE_REQUEST_VIDEO);
-    }
+	public void getVideo() {
+		Intent intent = new Intent();
+		intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
+		startActivityForResult(intent, CAPTURE_REQUEST_VIDEO);
+	}
 
-	public void getImage(){
-        Intent intent = new Intent();
-        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent,CAPTURE_REQUEST_IMAGE);
-    }
+	public void getImage() {
+		Intent intent = new Intent();
+		intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+		startActivityForResult(intent, CAPTURE_REQUEST_IMAGE);
+	}
+
+	public void uploadMedia(final String type, String path, final String beacon) {
+		Log.d(TAG, "Waiting for media...");
+		/*
+		 * FileObserver observer = new FileObserver(path) {
+		 * @Override public void onEvent(int event, String path) { if (new File(path).exists()) {
+		 * Log.d(TAG, "The image has been saved"); this.stopWatching(); UploadMediaAsyncTask
+		 * uploadMediaAsyncTask = new UploadMediaAsyncTask(getApplicationContext(), beacon, path,
+		 * type); uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); finish();
+		 * } } };
+		 */
+
+		// last check
+		while (new File(path).exists()){
+            // yo
+        }
+		UploadMediaAsyncTask uploadMediaAsyncTask =
+				new UploadMediaAsyncTask(getApplicationContext(), beacon, path, type);
+		uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		finish();
+
+		//observer.startWatching();
+	}
 }
