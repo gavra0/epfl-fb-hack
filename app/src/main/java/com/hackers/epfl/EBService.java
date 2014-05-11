@@ -14,6 +14,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -34,13 +35,13 @@ public class EBService extends Service implements SensorEventListener {
 	private BeaconManager beaconManager;
 
 	private Region groundZero;
-    private String currentStatus;
+	private String currentStatus;
 
 	private static final String TAG = "EBService";
 
 	private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
 
-    // valid beacons
+	// valid beacons
 	private static final int beaconXMajor = 28945;
 	private static final int beaconXMinor = 0;
 	private static final int beaconYMajor = 28945;
@@ -48,12 +49,12 @@ public class EBService extends Service implements SensorEventListener {
 	private static final int beaconZMajor = 28945;
 	private static final int beaconZMinor = 2;
 
-    // maximum range to beacon
+	// maximum range to beacon
 	private static final double minThreshold = 3;
 
-    // scan length and period in seconds
-    private static final int scanLength = 1;
-    private static final int scanPeriod = 4;
+	// scan length and period in seconds
+	private static final int scanLength = 1;
+	private static final int scanPeriod = 4;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -70,7 +71,7 @@ public class EBService extends Service implements SensorEventListener {
 		super.onCreate();
 
 		handler = new Handler();
-        currentStatus = "";
+		currentStatus = "";
 
 		// TODO add sensor data to stop/start beacon scanning
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -80,30 +81,42 @@ public class EBService extends Service implements SensorEventListener {
 		groundZero = new Region("groundZero", ESTIMOTE_PROXIMITY_UUID, null, null);
 		beaconManager = new BeaconManager(getApplicationContext());
 
-		beaconManager.setForegroundScanPeriod(TimeUnit.SECONDS.toMillis(scanLength),TimeUnit.SECONDS.toMillis(scanPeriod));
-        beaconManager.setRangingListener(new BeaconManager.RangingListener() {
-            @Override
-            public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+		beaconManager.setForegroundScanPeriod(	TimeUnit.SECONDS.toMillis(scanLength),
+												TimeUnit.SECONDS.toMillis(scanPeriod));
+		beaconManager.setRangingListener(new BeaconManager.RangingListener() {
+			@Override
+			public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
 
-                        Beacon nearest = getNearestBeacon(beacons);
-                        String nearestID = getBeaconID(nearest);
+						Beacon nearest = getNearestBeacon(beacons);
+						String nearestID = getBeaconID(nearest);
 
-                        if(!nearestID.equals(currentStatus)) {
-                            if(nearestID == "") {
-                                showNotification("All beacons out of range");
-                            } else {
-                                showNotification(nearestID);
-                            }
+						if (!nearestID.equals(currentStatus)) {
+							if (nearestID == "") {
+								showNotification("All beacons out of range");
+							} else {
+								showNotification(nearestID);
+								new SendBeaconIDToServerAsyncTask(
+										getApplicationContext(),
+										nearestID,
+										new SendBeaconIDToServerAsyncTask.ISendBeaconIDToServerResultHandler() {
+											@Override
+											public void onPostExecute(
+													BeaconAPIMessage.BeaconRequestResponse responseResult) {
+                                                //TODO create a CARD
 
-                            currentStatus = nearestID;
-                        }
-                    }
-                });
-            }
-        });
+											}
+										}).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+							}
+
+							currentStatus = nearestID;
+						}
+					}
+				});
+			}
+		});
 	}
 
 	/**
@@ -178,22 +191,23 @@ public class EBService extends Service implements SensorEventListener {
 		Beacon nearest = null;
 
 		for (Beacon b : beacons) {
-            if((b.getMajor() == beaconXMajor && b.getMinor() == beaconXMinor) ||
-                    (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor) ||
-                    (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
-                double distance = Utils.computeAccuracy(b);
-                // checks it's within the minimum Threshold (not too far)
-                if (distance < minThreshold && distance < min) {
-                    min = distance;
-                    nearest = b;
-                }
-            }
+			if ((b.getMajor() == beaconXMajor && b.getMinor() == beaconXMinor)
+					|| (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor)
+					|| (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
+				double distance = Utils.computeAccuracy(b);
+				// checks it's within the minimum Threshold (not too far)
+				if (distance < minThreshold && distance < min) {
+					min = distance;
+					nearest = b;
+				}
+			}
 		}
 		return nearest;
 	}
 
-    private String getBeaconID(Beacon beacon) {
-        return beacon == null ? "" : beacon.getProximityUUID() + "_" + beacon.getMajor() + "_" + beacon.getMinor();
-    }
+	private String getBeaconID(Beacon beacon) {
+		return beacon == null ? "" : beacon.getProximityUUID() + "_" + beacon.getMajor() + "_"
+				+ beacon.getMinor();
+	}
 
 }
