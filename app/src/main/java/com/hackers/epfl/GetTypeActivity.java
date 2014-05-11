@@ -31,13 +31,16 @@ public class GetTypeActivity extends Activity{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "Act result: req resp int " + requestCode + " " + resultCode);
-        if (requestCode != GET_POST_TYPE && data == null){
+        if (requestCode != GET_POST_TYPE || data == null){
+            finish();
             return;
         }
 
         List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
         if (results == null || results.isEmpty()) {
             Log.d(TAG, "No text recognized");
+            finish();
+            return;
         } else {
             String spokenText = results.get(0);
             Log.d(TAG, "Post type " + spokenText);

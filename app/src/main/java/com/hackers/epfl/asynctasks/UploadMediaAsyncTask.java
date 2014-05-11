@@ -9,14 +9,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 
 import com.hackers.epfl.Constants;
@@ -45,10 +45,15 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
             // populate the data to post
             formData = new LinkedMultiValueMap<String, Object>();
             formData.add(Constants.PARAM_BEACON_ID, beaconID);
-            formData.add("file", read(new File(path)));
+
+            byte[] bytes = read(new File(path));
+            byte[] encoded = Base64.encode(bytes, Base64.DEFAULT);
+            String encodedString = new String(encoded);
+            formData.add("file", encodedString);
         }
         catch (Exception e){
             //IO Exception
+            e.printStackTrace();
         }
 	}
 
@@ -62,7 +67,7 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
 			HttpHeaders requestHeaders = new HttpHeaders();
 
 			// Sending multipart/form-data
-			requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 			// Populate the MultiValueMap being serialized and headers in an HttpEntity object to
 			// use for the request
@@ -71,6 +76,7 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
 
 			// Create a new RestTemplate instance
 			RestTemplate restTemplate = new RestTemplate(true);
+            restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());
 
 			restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
@@ -83,7 +89,7 @@ public class UploadMediaAsyncTask extends AsyncTask<Void, Void, Void> {
 		return null;
 	}
 
-	public byte[] read(File file) throws IOException{
+	public byte[] read(File file) throws IOException {
 		byte[] buffer = new byte[(int) file.length()];
 		InputStream ios = null;
 		try {
