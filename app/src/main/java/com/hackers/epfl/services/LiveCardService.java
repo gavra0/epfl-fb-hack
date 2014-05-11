@@ -1,5 +1,6 @@
 package com.hackers.epfl.services;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -21,6 +22,8 @@ public class LiveCardService extends Service {
 
 	private static final String LIVE_CARD_TAG = "LiveCardDemo";
 
+    public static LiveCardService instance = null;
+
 	private LiveCard mLiveCard;
 	private RemoteViews mLiveCardView;
 
@@ -30,6 +33,7 @@ public class LiveCardService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (mLiveCard == null) {
+            instance = this;
             Log.d(TAG, "On start service");
 
 			// Get an instance of a live card
@@ -37,6 +41,8 @@ public class LiveCardService extends Service {
 
 			// Inflate a layout into a remote view
 			mLiveCardView = new RemoteViews(getPackageName(), R.layout.activity_main);
+
+            Log.d(TAG, "Remote views "+mLiveCardView);
 
 			// TODO put the location id in the intent
 			int locationId = 1;
@@ -50,10 +56,12 @@ public class LiveCardService extends Service {
 
 			// Set up the live card's action with a pending intent
 			// to show a menu when tapped
+            mLiveCard.setViews(mLiveCardView);
 			Intent menuIntent = new Intent(this, MainActivity.class);
 			menuIntent.putExtra(MainActivity.LOCATION_ID, locationId);
-			menuIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            menuIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			mLiveCard.setAction(PendingIntent.getActivity(this, 0, menuIntent, 0));
+            mLiveCard.attach(this);
 
 			// Publish the live card
 			mLiveCard.publish(PublishMode.REVEAL);
@@ -66,6 +74,7 @@ public class LiveCardService extends Service {
 		if (mLiveCard != null && mLiveCard.isPublished()) {
 			mLiveCard.unpublish();
 			mLiveCard = null;
+            instance = null;
 		}
 		super.onDestroy();
 	}
