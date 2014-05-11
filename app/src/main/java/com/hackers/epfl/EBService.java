@@ -39,7 +39,6 @@ public class EBService extends Service implements SensorEventListener {
 	private String currentStatus;
 
 	private static final String TAG = "EBService";
-    public static final String NEAREST = "nearest";
 
 	private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
 
@@ -54,7 +53,7 @@ public class EBService extends Service implements SensorEventListener {
     public static final String DEAFULT_BEACON = ESTIMOTE_PROXIMITY_UUID+"_"+beaconXMajor+"_"+beaconXMinor;
 
 	// maximum range to beacon
-	private static final double minThreshold = 3;
+	private static final double maxThreshold = 2;
 
 	// scan length and period in seconds
 	private static final int scanLength = 1;
@@ -142,11 +141,12 @@ public class EBService extends Service implements SensorEventListener {
     private void saveNearest(String beaconID) {
         Log.i(TAG, beaconID);
         SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE).edit();
-        editor.putString(NEAREST, beaconID);
+        editor.putString(Constants.SHARED_PREF_BEACON, beaconID);
         editor.commit();
     }
 
     private void notifyServer(String beaconID) {
+
         new SendBeaconIDToServerAsyncTask(
                 getApplicationContext(),
                 beaconID,
@@ -161,7 +161,7 @@ public class EBService extends Service implements SensorEventListener {
     }
 
     private Beacon getNearestBeacon(List<Beacon> beacons) {
-        double min = minThreshold;
+        double min = maxThreshold;
         Beacon nearest = null;
 
         for (Beacon b : beacons) {
@@ -169,8 +169,9 @@ public class EBService extends Service implements SensorEventListener {
                     || (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor)
                     || (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
                 double distance = Utils.computeAccuracy(b);
+                Log.i(TAG, b.getMinor() + " distance: " + distance);
                 // get minimum within a maximum threshold (not too far)
-                if (distance < minThreshold && distance < min) {
+                if (distance < maxThreshold && distance < min) {
                     min = distance;
                     nearest = b;
                 }
