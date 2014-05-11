@@ -32,12 +32,14 @@ public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
 
 	public SendMessageAsyncTask(Context context, String beaconID, String message) {
 		this.context = context;
-        this.json = "request={\""+Constants.PARAM_BEACON_ID+"\":"+beaconID+", \""+Constants.PARAM_MESSAGE+"\":"+message+"}";
+		this.json =
+				"request={\"" + Constants.PARAM_BEACON_ID + "\":" + beaconID + ", \""
+						+ Constants.PARAM_MESSAGE + "\":" + message + "}";
 	}
 
 	@Override
 	protected Void doInBackground(Void... params) {
-        Log.d(TAG, "Sending msg");
+		Log.d(TAG, "Sending msg");
 		BeaconAPIMessage.BeaconRequestResponse result = null;
 
 		final String url = context.getResources().getString(R.string.gnote_url);
@@ -45,7 +47,7 @@ public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 		requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		// requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
 		body.add(Constants.PARAM_REQUEST, json);

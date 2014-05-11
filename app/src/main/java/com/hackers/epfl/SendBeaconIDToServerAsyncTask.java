@@ -48,7 +48,7 @@ public class SendBeaconIDToServerAsyncTask extends
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 		requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		// requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
 		body.add(Constants.PARAM_REQUEST, json);
