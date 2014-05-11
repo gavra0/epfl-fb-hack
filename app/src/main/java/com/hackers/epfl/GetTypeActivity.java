@@ -26,6 +26,7 @@ public class GetTypeActivity extends Activity{
 
     private void displaySpeechRecognizer() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "note, question, video, image");
         startActivityForResult(intent, GET_POST_TYPE);
     }
 

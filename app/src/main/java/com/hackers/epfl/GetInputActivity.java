@@ -15,7 +15,6 @@ import java.util.List;
  */
 public class GetInputActivity extends Activity{
     private static final String TAG = GetInputActivity.class.getCanonicalName();
-    public static final int GET_POST_TYPE = 1;
     private static final int SPEECH_REQUEST_NOTE = 0;
 
     @Override

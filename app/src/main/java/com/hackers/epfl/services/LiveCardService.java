@@ -26,6 +26,8 @@ public class LiveCardService extends Service {
 
 	private LiveCard mLiveCard;
 	private RemoteViews mLiveCardView;
+    private LiveCard mLiveCard1;
+    private RemoteViews mLiveCardView1;
 
 	private final Handler mHandler = new Handler();
 	private static final long DELAY_MILLIS = 30000;
@@ -41,6 +43,11 @@ public class LiveCardService extends Service {
 
 			// Inflate a layout into a remote view
 			mLiveCardView = new RemoteViews(getPackageName(), R.layout.activity_main);
+
+            mLiveCard1 = new LiveCard(this, LIVE_CARD_TAG);
+
+            // Inflate a layout into a remote view
+            mLiveCardView1 = new RemoteViews(getPackageName(), R.layout.activity_main);
 
             Log.d(TAG, "Remote views "+mLiveCardView);
 
@@ -64,7 +71,23 @@ public class LiveCardService extends Service {
             mLiveCard.attach(this);
 
 			// Publish the live card
-			mLiveCard.publish(PublishMode.REVEAL);
+			mLiveCard.publish(PublishMode.SILENT);
+
+            // Set up initial RemoteViews values
+            mLiveCardView1.setTextViewText(R.id.notification_count, nCount + " message"
+                    + (nCount > 1 ? "s" : ""));
+
+            // Set up the live card's action with a pending intent
+            // to show a menu when tapped
+            mLiveCard1.setViews(mLiveCardView1);
+            Intent menuIntent1 = new Intent(this, MainActivity.class);
+            menuIntent1.putExtra(MainActivity.LOCATION_ID, locationId);
+            menuIntent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mLiveCard1.setAction(PendingIntent.getActivity(this, 0, menuIntent1, 0));
+            mLiveCard1.attach(this);
+
+            // Publish the live card
+            mLiveCard1.publish(PublishMode.REVEAL);
 		}
 		return START_STICKY;
 	}
