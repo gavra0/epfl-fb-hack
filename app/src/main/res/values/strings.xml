@@ -13,8 +13,9 @@
     <string name="action_settings">Settings</string>
     <string name="shared_data">common</string>
     <string name="request_message_for_beacon_url">https://gnote-epfl.appspot.com/gnote?beaconID=%1$s</string>
+    <string name="gnote_url">https://gnote-epfl.appspot.com/gnote</string>
 
     <string name="glass_voice_prompt">note, question, video, image?</string>
-    
-     <string name="title_activity_beacon">BeaconActivity</string>
+
+    <string name="title_activity_beacon">BeaconActivity</string>
 </resources>

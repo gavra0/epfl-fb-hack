@@ -1,6 +1,12 @@
-package com.hackers.epfl;
+package com.hackers.epfl.asynctasks;
 
-import java.util.Collections;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+
+import com.hackers.epfl.BeaconAPIMessage;
+import com.hackers.epfl.Constants;
+import com.hackers.epfl.R;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,36 +19,30 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
+import java.util.Collections;
 
 /**
  * @author Filip Hrisafov
  */
-public class SendBeaconIDToServerAsyncTask extends
-		AsyncTask<Void, Void, BeaconAPIMessage.BeaconRequestResponse> {
-
-    public static String TAG = SendBeaconIDToServerAsyncTask.class.getCanonicalName();
+public class SendMessageAsyncTask extends AsyncTask<Void, Void, Void> {
+	public static String TAG = SendMessageAsyncTask.class.getCanonicalName();
 
 	private final Context context;
 	private final String beaconID;
-	private final ISendBeaconIDToServerResultHandler handler;
+	private final String message;
 
-	public SendBeaconIDToServerAsyncTask(Context context, String beaconID,
-			ISendBeaconIDToServerResultHandler handler) {
+	public SendMessageAsyncTask(Context context, String beaconID, String message) {
 		this.context = context;
 		this.beaconID = beaconID;
-		this.handler = handler;
+		this.message = message;
 	}
 
 	@Override
-	protected BeaconAPIMessage.BeaconRequestResponse doInBackground(Void... params) {
+	protected Void doInBackground(Void... params) {
 
 		BeaconAPIMessage.BeaconRequestResponse result = null;
 
-		final String url =
-				context.getResources().getString(R.string.request_message_for_beacon_url, beaconID);
+		final String url = context.getResources().getString(R.string.gnote_url);
 
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -50,6 +50,7 @@ public class SendBeaconIDToServerAsyncTask extends
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
 		body.add(Constants.PARAM_BEACON_ID, beaconID);
+		body.add(Constants.PARAM_MESSAGE, beaconID);
 
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());
@@ -71,17 +72,6 @@ public class SendBeaconIDToServerAsyncTask extends
 			}
 			// TODO
 		}
-		return result;
-	}
-
-	@Override
-	protected void onPostExecute(BeaconAPIMessage.BeaconRequestResponse responseResult) {
-		super.onPostExecute(responseResult);
-		handler.onPostExecute(responseResult);
-	}
-
-	public interface ISendBeaconIDToServerResultHandler {
-		public void onPostExecute(BeaconAPIMessage.BeaconRequestResponse responseResult);
-
+		return null;
 	}
 }
