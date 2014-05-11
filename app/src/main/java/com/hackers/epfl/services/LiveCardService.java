@@ -14,6 +14,7 @@ import android.widget.RemoteViews;
 
 import com.google.android.glass.timeline.LiveCard;
 import com.google.android.glass.timeline.LiveCard.PublishMode;
+import com.hackers.epfl.Constants;
 import com.hackers.epfl.MainActivity;
 import com.hackers.epfl.R;
 
@@ -53,7 +54,7 @@ public class LiveCardService extends Service {
 
 			// TODO put the location id in the intent
 			int locationId = 1;
-			SharedPreferences prefs = this.getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE);
+			SharedPreferences prefs = this.getSharedPreferences(Constants.COMMON_PREF, MODE_PRIVATE);
 			int nCount = prefs.getInt(MainActivity.MSG_COUNT_LOC + locationId, 0);
 
 			// Set up initial RemoteViews values

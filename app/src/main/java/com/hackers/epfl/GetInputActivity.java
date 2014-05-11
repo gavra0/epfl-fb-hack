@@ -65,7 +65,7 @@ public class GetInputActivity extends Activity {
 
 		// user entered the note to save, send msg and beacon
 		SharedPreferences sharedPrefs =
-				this.getSharedPreferences(getString(R.string.shared_data), MODE_PRIVATE);
+				this.getSharedPreferences(Constants.COMMON_PREF, MODE_PRIVATE);
 		final String beacon = sharedPrefs.getString(Constants.SHARED_PREF_BEACON, EBService.DEAFULT_BEACON);
 		if (EBService.DEAFULT_BEACON.equals(beacon)) {
 			finish();
