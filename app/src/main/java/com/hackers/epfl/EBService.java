@@ -97,6 +97,8 @@ public class EBService extends Service implements SensorEventListener {
                             } else {
                                 showNotification(nearestID);
                             }
+
+                            currentStatus = nearestID;
                         }
                     }
                 });

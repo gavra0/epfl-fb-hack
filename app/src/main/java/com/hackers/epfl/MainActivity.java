@@ -81,6 +81,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        // starts beacon service
+        this.startService(new Intent(this, EBService.class));
+
         // init count to 0s
         SharedPreferences sharedPrefs = this.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
