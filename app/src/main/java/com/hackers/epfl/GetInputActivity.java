@@ -1,13 +1,22 @@
 package com.hackers.epfl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Camera;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.FileObserver;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -42,7 +51,7 @@ public class GetInputActivity extends Activity {
 			displaySpeechRecognizer(SPEECH_REQUEST_QUESTIONS);
 		} else if (spokenText.toLowerCase().equals("video")
 				|| spokenText.toLowerCase().equals("videos")) {
-			getVideo();
+			getImage();
 		} else if (spokenText.toLowerCase().equals("image")
 				|| spokenText.toLowerCase().equals("images")) {
 			getImage();
@@ -87,15 +96,13 @@ public class GetInputActivity extends Activity {
 
 				if (requestCode == SPEECH_REQUEST_NOTE && resultCode == RESULT_OK) {
 					SendMessageAsyncTask submitNote =
-							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText,
-									false);
+							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText, false);
 					submitNote.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 					finish();
 				} else if (requestCode == SPEECH_REQUEST_QUESTIONS && resultCode == RESULT_OK) {
 					SendMessageAsyncTask submitNote =
-							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText,
-									true);
+							new SendMessageAsyncTask(getApplicationContext(), beacon, spokenText, true);
 					submitNote.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 					finish();
@@ -104,64 +111,72 @@ public class GetInputActivity extends Activity {
 		}
 		// IMAGE BASED MESSAGES
 		else if (requestCode == CAPTURE_REQUEST_IMAGE) {
-			String path = data.getExtras().getString(CameraManager.EXTRA_PICTURE_FILE_PATH);
-			File img = new File(path);
-			if (img.exists()) {
-				Log.d(TAG, "Upload directly");
-				UploadMediaAsyncTask uploadMediaAsyncTask =
-						new UploadMediaAsyncTask(getApplicationContext(), beacon, path, "img");
-				uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+			if (resultCode == RESULT_OK) {
+                String picturePath = data.getStringExtra(
+                        CameraManager.EXTRA_PICTURE_FILE_PATH);
+                processPictureWhenReady(picturePath, beacon);
+
 				finish();
+			} else if (resultCode == RESULT_CANCELED) {
+				// User cancelled the image capture
 			} else {
-				uploadMedia("img", path, beacon);
+				// Image capture failed, advise user
 			}
-		} else if (requestCode == CAPTURE_REQUEST_VIDEO) {
-			String path = data.getExtras().getString(CameraManager.EXTRA_VIDEO_FILE_PATH);
-			File vid = new File(path);
-			if (vid.exists()) {
-				Log.d(TAG, "Upload directly");
-				UploadMediaAsyncTask uploadMediaAsyncTask =
-						new UploadMediaAsyncTask(getApplicationContext(), beacon, path, "vid");
-				uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-				finish();
-			} else {
-				uploadMedia("vid", path, beacon);
-			}
+
 		}
 	}
 
-	public void getVideo() {
-		Intent intent = new Intent();
-		intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
-		startActivityForResult(intent, CAPTURE_REQUEST_VIDEO);
-	}
+    private void getImage() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, CAPTURE_REQUEST_IMAGE);
+    }
 
-	public void getImage() {
-		Intent intent = new Intent();
-		intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-		startActivityForResult(intent, CAPTURE_REQUEST_IMAGE);
-	}
+    private void processPictureWhenReady(final String picturePath, final String beacon) {
+        final File pictureFile = new File(picturePath);
 
-	public void uploadMedia(final String type, String path, final String beacon) {
-		Log.d(TAG, "Waiting for media...");
-		/*
-		 * FileObserver observer = new FileObserver(path) {
-		 * @Override public void onEvent(int event, String path) { if (new File(path).exists()) {
-		 * Log.d(TAG, "The image has been saved"); this.stopWatching(); UploadMediaAsyncTask
-		 * uploadMediaAsyncTask = new UploadMediaAsyncTask(getApplicationContext(), beacon, path,
-		 * type); uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); finish();
-		 * } } };
-		 */
+        if (pictureFile.exists()) {
+            // The picture is ready; process it.
+            UploadMediaAsyncTask uploadMediaAsyncTask =
+                    new UploadMediaAsyncTask(getApplicationContext(), beacon, picturePath,
+                            "img");
+            uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            // The file does not exist yet. Before starting the file observer, you
+            // can update your UI to let the user know that the application is
+            // waiting for the picture (for example, by displaying the thumbnail
+            // image and a progress indicator).
 
-		// last check
-		while (new File(path).exists()) {
-			// yo
-		}
-		UploadMediaAsyncTask uploadMediaAsyncTask =
-				new UploadMediaAsyncTask(getApplicationContext(), beacon, path, type);
-		uploadMediaAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-		finish();
+            final File parentDirectory = pictureFile.getParentFile();
+            FileObserver observer = new FileObserver(parentDirectory.getPath(),
+                    FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO) {
+                // Protect against additional pending events after CLOSE_WRITE
+                // or MOVED_TO is handled.
+                private boolean isFileWritten;
 
-		// observer.startWatching();
-	}
+                @Override
+                public void onEvent(int event, String path) {
+                    if (!isFileWritten) {
+                        // For safety, make sure that the file that was created in
+                        // the directory is actually the one that we're expecting.
+                        File affectedFile = new File(parentDirectory, path);
+                        isFileWritten = affectedFile.equals(pictureFile);
+
+                        if (isFileWritten) {
+                            stopWatching();
+
+                            // Now that the file is ready, recursively call
+                            // processPictureWhenReady again (on the UI thread).
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    processPictureWhenReady(picturePath, beacon);
+                                }
+                            });
+                        }
+                    }
+                }
+            };
+            observer.startWatching();
+        }
+    }
 }
