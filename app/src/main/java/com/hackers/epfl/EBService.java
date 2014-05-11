@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -83,6 +84,7 @@ public class EBService extends Service implements SensorEventListener {
 
 		beaconManager.setForegroundScanPeriod(	TimeUnit.SECONDS.toMillis(scanLength),
 												TimeUnit.SECONDS.toMillis(scanPeriod));
+
 		beaconManager.setRangingListener(new BeaconManager.RangingListener() {
 			@Override
 			public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
@@ -95,20 +97,11 @@ public class EBService extends Service implements SensorEventListener {
 
 						if (!nearestID.equals(currentStatus)) {
 							if (nearestID == "") {
-								showNotification("All beacons out of range");
+                                saveNearest("");
 							} else {
-								showNotification(nearestID);
-								new SendBeaconIDToServerAsyncTask(
-										getApplicationContext(),
-										nearestID,
-										new SendBeaconIDToServerAsyncTask.ISendBeaconIDToServerResultHandler() {
-											@Override
-											public void onPostExecute(
-													BeaconAPIMessage.BeaconRequestResponse responseResult) {
-                                                //TODO create a CARD
 
-											}
-										}).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                saveNearest(nearestID);
+                                notifyServer(nearestID);
 							}
 
 							currentStatus = nearestID;
@@ -146,10 +139,50 @@ public class EBService extends Service implements SensorEventListener {
 		}
 	}
 
-	private void showNotification(String msg) {
-		// TODO
-		Log.i(TAG, msg);
-	}
+    private void saveNearest(String beaconID) {
+        Log.i(TAG, beaconID);
+        SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.shared_data), 0).edit();
+        editor.putString("nearest", beaconID);
+        editor.commit();
+    }
+
+    private void notifyServer(String beaconID) {
+        new SendBeaconIDToServerAsyncTask(
+                getApplicationContext(),
+                beaconID,
+                new SendBeaconIDToServerAsyncTask.ISendBeaconIDToServerResultHandler() {
+                    @Override
+                    public void onPostExecute(
+                            BeaconAPIMessage.BeaconRequestResponse responseResult) {
+                        //TODO create a CARD
+
+                    }
+                }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private Beacon getNearestBeacon(List<Beacon> beacons) {
+        double min = minThreshold;
+        Beacon nearest = null;
+
+        for (Beacon b : beacons) {
+            if ((b.getMajor() == beaconXMajor && b.getMinor() == beaconXMinor)
+                    || (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor)
+                    || (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
+                double distance = Utils.computeAccuracy(b);
+                // checks it's within the minimum Threshold (not too far)
+                if (distance < minThreshold && distance < min) {
+                    min = distance;
+                    nearest = b;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private String getBeaconID(Beacon beacon) {
+        return beacon == null ? "" : beacon.getProximityUUID() + "_" + beacon.getMajor() + "_"
+                + beacon.getMinor();
+    }
 
 	@Override
 	public void onDestroy() {
@@ -185,29 +218,4 @@ public class EBService extends Service implements SensorEventListener {
 		// TODO Auto-generated method stub
 
 	}
-
-	private Beacon getNearestBeacon(List<Beacon> beacons) {
-		double min = minThreshold;
-		Beacon nearest = null;
-
-		for (Beacon b : beacons) {
-			if ((b.getMajor() == beaconXMajor && b.getMinor() == beaconXMinor)
-					|| (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor)
-					|| (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
-				double distance = Utils.computeAccuracy(b);
-				// checks it's within the minimum Threshold (not too far)
-				if (distance < minThreshold && distance < min) {
-					min = distance;
-					nearest = b;
-				}
-			}
-		}
-		return nearest;
-	}
-
-	private String getBeaconID(Beacon beacon) {
-		return beacon == null ? "" : beacon.getProximityUUID() + "_" + beacon.getMajor() + "_"
-				+ beacon.getMinor();
-	}
-
 }
