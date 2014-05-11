@@ -86,30 +86,27 @@ public class EBService extends Service implements SensorEventListener {
 												TimeUnit.SECONDS.toMillis(scanPeriod));
 
 		beaconManager.setRangingListener(new BeaconManager.RangingListener() {
-			@Override
-			public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
+            @Override
+            public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-						Beacon nearest = getNearestBeacon(beacons);
-						String nearestID = getBeaconID(nearest);
+                        Beacon nearest = getNearestBeacon(beacons);
+                        String nearestID = getBeaconID(nearest);
 
-						if (!nearestID.equals(currentStatus)) {
-							if (nearestID == "") {
-                                saveNearest("");
-							} else {
-
-                                saveNearest(nearestID);
+                        if (!nearestID.equals(currentStatus)) {
+                            saveNearest(nearestID);
+                            if (nearestID != "") {
                                 notifyServer(nearestID);
-							}
+                            }
 
-							currentStatus = nearestID;
-						}
-					}
-				});
-			}
-		});
+                            currentStatus = nearestID;
+                        }
+                    }
+                });
+            }
+        });
 	}
 
 	/**
@@ -169,7 +166,7 @@ public class EBService extends Service implements SensorEventListener {
                     || (b.getMajor() == beaconYMajor && b.getMinor() == beaconYMinor)
                     || (b.getMajor() == beaconZMajor && b.getMinor() == beaconZMinor)) {
                 double distance = Utils.computeAccuracy(b);
-                // checks it's within the minimum Threshold (not too far)
+                // get minimum within a maximum threshold (not too far)
                 if (distance < minThreshold && distance < min) {
                     min = distance;
                     nearest = b;
